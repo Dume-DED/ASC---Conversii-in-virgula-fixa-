@@ -1,9 +1,16 @@
-﻿using System;
+using System;
 class Program
 {
     static void Main()
     {
         userInput.CitireNumar();
+        int egale = 0;
+        if (userInput.b1 == userInput.b2) egale = 1;
+        if (egale == 1)
+        {
+            Console.WriteLine($"Numarul introdus: {userInput.nrTxt} este deja in baza dorita.");
+            return;
+        }
         bool negativ = SeprareParti.EsteNegativ(userInput.nrTxt);
         string intregTxt = SeprareParti.ParteaIntreaga(userInput.nrTxt);
         string fractieTxt = SeprareParti.ParteaFractionara(userInput.nrTxt);
@@ -12,6 +19,7 @@ class Program
         string intregB2 = ConversieBaze.IntregDinZecimalLaB2(intreg, userInput.b2);
         string fractieB2 = ConversieBaze.FractieDinZecimalLaB2(fractie, userInput.b2);
         Console.WriteLine();
+        Console.WriteLine("Numarul va fi aproximat la maxim 7 cifre dupa virgula in baza dorita.");
         Console.WriteLine("Rezultat: " + Asamblez.AsamblezNumar(negativ, intregB2, fractieB2));
     }
 
@@ -26,7 +34,7 @@ class userInput
         while (true)
         {
             Console.Write("Introduceti numarul: ");
-             nrTxt = Console.ReadLine().ToUpper();
+             nrTxt = Console.ReadLine().Trim().ToUpper();
             Console.WriteLine();
             Console.Write("Introduceti baza numarului: ");
             string b1Txt = Console.ReadLine();
@@ -67,9 +75,9 @@ class userInput
     public static bool NumarValid(string nrTxt, int b)
     {
         string cifre = "0123456789ABCDEF";
-        nrTxt = nrTxt.ToUpper();
+        nrTxt = nrTxt.Trim().ToUpper(); // de ex: "  1a.3F  " -> "1A.3F"
         if (nrTxt.Length == 0) return false;
-        int nrPuncte = 0;
+        int nrPuncte = 0, nrVirgule = 0;
         int nrCifre = 0;
         for (int i = 0; i < nrTxt.Length; i++)
         {
@@ -78,16 +86,21 @@ class userInput
             {   if (i != 0) return false;
                 continue;
             }
-            if (c == '.')
+            if (c == '.' )
             {
                 nrPuncte++;
                 continue;
             }
+            if(c == ',')
+            {
+                nrVirgule++;
+                continue;
+            }
             int valoare = cifre.IndexOf(c);
-            if (valoare == -1 || valoare >= b) return false;
+            if (valoare == -1 || valoare >= b) return false; // sa coresponda cu baza
             nrCifre++;
         }
-        if (nrPuncte != 1) return false;
+        if (nrPuncte + nrVirgule != 1 ) return false;
         if (nrCifre == 0) return false;
         return true;
 
@@ -98,6 +111,7 @@ class userInput
     }
     
 }
+// clasa SeparareParti: extragerea partii intregi si a partii fractionare dintr-un numar ex: 1,2 :pInr e 1 si pFr e 2
 class SeprareParti
 {
     public static bool EsteNegativ(string nrTxt)
@@ -106,7 +120,7 @@ class SeprareParti
     }
     public static string ParteaIntreaga(string nrTxt)
     {
-        int index = nrTxt.IndexOf('.');
+        int index = nrTxt.IndexOfAny(new char[] { '.', ',' });
         if (index == -1) return "0";
         int negativ = 0;
         if(nrTxt[0] == '-') negativ = 1;
@@ -116,7 +130,7 @@ class SeprareParti
     }
     public static string ParteaFractionara(string nrTxt)
     {
-        int index = nrTxt.IndexOf('.');
+        int index = nrTxt.IndexOfAny(new char[] { '.', ',' });
         if (index == -1)  return "0";
         return nrTxt.Substring(index + 1);
         
@@ -138,7 +152,7 @@ class Conversie
 }
 class ConversieBaze
 {
-    const int MaxCifre = 7;
+    const int MaxCifre = 7; // limita pentru partea fractionara in caz ca e periodica
     public static long IntregDinB1LaZecimal(string nrTxt, int b1)
     {
         long rezultat = 0;
